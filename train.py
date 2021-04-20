@@ -9,8 +9,8 @@ from loss import ChamferDistance, EarthMoverDistance
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--partial_root', type=str, default='/home/rico/Workspace/Dataset/shapenetpcn/partial')
-parser.add_argument('--gt_root', type=str, default='/home/rico/Workspace/Dataset/shapenetpcn/gt')
+parser.add_argument('--partial_root', type=str, default='/shapenet/partial')
+parser.add_argument('--gt_root', type=str, default='/shapenet/complete')
 parser.add_argument('--model', type=str, default=None)
 parser.add_argument('--num_input', type=int, default=2048)
 parser.add_argument('--num_coarse', type=int, default=1024)
@@ -32,7 +32,7 @@ emd_loss = EarthMoverDistance()
 loss_d1 = cd_loss if args.loss_d1 == 'cd' else emd_loss
 loss_d2 = cd_loss
 
-train_dataset = ShapeNet(partial_path=args.partial_root, gt_path=args.gt_root, split='train')
+train_dataset = ShapeNet(partial_path=args.partial_root, gt_path=args.gt_root, split='test')
 val_dataset = ShapeNet(partial_path=args.partial_root, gt_path=args.gt_root, split='val')
 train_dataloader = torch.utils.data.DataLoader(train_dataset, batch_size=args.batch_size, shuffle=True, num_workers=args.num_workers)
 val_dataloader = torch.utils.data.DataLoader(val_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
