@@ -7,8 +7,8 @@ from loss import ChamferDistance
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--partial_root', type=str, default='/shapenet/test/partial')
-parser.add_argument('--gt_root', type=str, default='/shapenet/test/gt')
+parser.add_argument('--partial_root', type=str, default='/home/rico/Workspace/Dataset/shapenetpcn/partial')
+parser.add_argument('--gt_root', type=str, default='/home/rico/Workspace/Dataset/shapenetpcn/gt')
 parser.add_argument('--batch_size', type=int, default=16)
 parser.add_argument('--num_workers', type=int, default=4)
 args = parser.parse_args()
@@ -21,7 +21,7 @@ test_dataset = ShapeNet(partial_path=args.partial_root, gt_path=args.gt_root, sp
 test_dataloader = torch.utils.data.DataLoader(test_dataset, batch_size=args.batch_size, shuffle=False, num_workers=args.num_workers)
 
 network = AutoEncoder()
-#network.load_state_dict(torch.load('log/lowest_loss.pth'))
+network.load_state_dict(torch.load('log/lowest_loss.pth'))
 network.to(DEVICE)
 
 # testing: evaluate the mean cd loss
