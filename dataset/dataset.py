@@ -1,6 +1,6 @@
 import os
 import random
-
+import setuptools
 import numpy as np
 import torch
 from torch._C import dtype
@@ -14,7 +14,7 @@ from utils import resample_pcd, show_point_cloud
 
 
 class ShapeNet(Data.Dataset):
-    def __init__(self, partial_path, gt_path, num_input=2048, num_coarse=1024, num_dense=16384, split='train', num_scans=8):
+    def __init__(self, partial_path, gt_path, num_input=2048, num_coarse=1024, num_dense=16384, split='test', num_scans=8):
         self.partial_path = partial_path
         self.gt_path = gt_path
         self.num_input = num_input
@@ -27,9 +27,9 @@ class ShapeNet(Data.Dataset):
         self.metadata = list()
         for filename in filenames:
             #for i in range(num_scans):
-                partial_input = os.path.join(partial_path, '{}.pcd'.format(filename))
-                ground_truth = os.path.join(gt_path, filename, 'model.pcd')
-                self.metadata.append((partial_input, ground_truth))
+            partial_input = os.path.join(partial_path, '{}.pcd'.format(filename))
+            ground_truth = os.path.join(gt_path, '{}.pcd'.format(filename))
+            self.metadata.append((partial_input, ground_truth))
 
     def __getitem__(self, index):
         partial_input_path, gt_output_path = self.metadata[index]
@@ -57,7 +57,7 @@ if __name__ == '__main__':
     GT_ROOT = os.path.join(ROOT, 'gt')
     PARTIAL_ROOT = os.path.join(ROOT, 'partial')
 
-    train_dataset = ShapeNet(partial_path=PARTIAL_ROOT, gt_path=GT_ROOT, split='train')
+    train_dataset = ShapeNet(partial_path=PARTIAL_ROOT, gt_path=GT_ROOT, split='test')
     val_dataset = ShapeNet(partial_path=PARTIAL_ROOT, gt_path=GT_ROOT, split='val')
     test_dataset = ShapeNet(partial_path=PARTIAL_ROOT, gt_path=GT_ROOT, split='test')
     print("\033[33mTraining dataset\033[0m has {} pair of partial and ground truth point clouds".format(len(train_dataset)))
