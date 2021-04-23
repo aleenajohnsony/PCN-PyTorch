@@ -9,8 +9,8 @@ from loss import ChamferDistance, EarthMoverDistance
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument('--partial_root', type=str, default='/dataset/test/partial')
-parser.add_argument('--gt_root', type=str, default='/dataset/test/gt')
+parser.add_argument('--partial_root', type=str, default='./dataset/test/partial')
+parser.add_argument('--gt_root', type=str, default='./dataset/test/gt')
 parser.add_argument('--model', type=str, default=None)
 parser.add_argument('--num_input', type=int, default=2048)
 parser.add_argument('--num_coarse', type=int, default=1024)
