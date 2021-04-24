@@ -93,9 +93,11 @@ class Decoder(nn.Module):
         return y_coarse, y_detail
 
 class pointfilter_decoder(nn.Module):
-    def __init__(self):
+    def __init__(self, num_coarse=1024, num_dense=16384):
         super(pointfilter_decoder, self).__init__()
 
+        self.num_coarse = num_coarse
+        
         self.fc1 = nn.Linear(1024, 512)
         self.fc2 = nn.Linear(512, 256)
         self.fc3 = nn.Linear(256, 3)
@@ -106,14 +108,36 @@ class pointfilter_decoder(nn.Module):
         self.dropout_1 = nn.Dropout(0.3)
         self.dropout_2 = nn.Dropout(0.3)
 
+        # 2D grid
+        grids = np.meshgrid(np.linspace(-0.05, 0.05, 4, dtype=np.float32),
+                            np.linspace(-0.05, 0.05, 4, dtype=np.float32))                               # (2, 4, 44)
+        self.grids = torch.Tensor(grids).view(2, -1)  # (2, 4, 4) -> (2, 16)
+    
     def forward(self, x):
-        x = F.relu(self.bn1(self.fc1(x)))
-        # x = self.dropout_1(x)
-        x = F.relu(self.bn2(self.fc2(x)))
-        # x = self.dropout_2(x)
-        x = torch.tanh(self.fc3(x))
+        b = x.size()[0]
+        # global features
+        v = x  # (B, 1024)
 
-        return x
+        # fully connected layers to generate the coarse output
+        x = F.relu(self.bn1(self.fc1(x)))
+        x = F.relu(self.bn2(self.fc2(x)))
+        x = self.fc3(x)
+        y_coarse = x.view(-1, 3, self.num_coarse)  # (B, 3, 1024)
+
+        repeated_centers = y_coarse.unsqueeze(3).repeat(1, 1, 1, 16).view(b, 3, -1)  # (B, 3, 16x1024)
+        repeated_v = v.unsqueeze(2).repeat(1, 1, 16 * self.num_coarse)               # (B, 1024, 16x1024)
+        grids = self.grids.to(x.device)  # (2, 16)
+        grids = grids.unsqueeze(0).repeat(b, 1, self.num_coarse)                     # (B, 2, 16x1024)
+
+        x = torch.cat([repeated_v, grids, repeated_centers], dim=1)                  # (B, 2+3+1024, 16x1024)
+        x = F.relu(self.bn3(self.conv1(x)))
+        x = F.relu(self.bn4(self.conv2(x)))
+        x = self.conv3(x)                # (B, 3, 16x1024)
+        y_detail = x + repeated_centers  # (B, 3, 16x1024)
+
+        return y_coarse, y_detail
+    
+    
 class AutoEncoder(nn.Module):
     def __init__(self):
         super(AutoEncoder, self).__init__()
