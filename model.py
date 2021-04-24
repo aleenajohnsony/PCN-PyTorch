@@ -92,13 +92,34 @@ class Decoder(nn.Module):
 
         return y_coarse, y_detail
 
+class pointfilter_decoder(nn.Module):
+    def __init__(self):
+        super(pointfilter_decoder, self).__init__()
 
+        self.fc1 = nn.Linear(1024, 512)
+        self.fc2 = nn.Linear(512, 256)
+        self.fc3 = nn.Linear(256, 3)
+
+        self.bn1 = nn.BatchNorm1d(512)
+        self.bn2 = nn.BatchNorm1d(256)
+
+        self.dropout_1 = nn.Dropout(0.3)
+        self.dropout_2 = nn.Dropout(0.3)
+
+    def forward(self, x):
+        x = F.relu(self.bn1(self.fc1(x)))
+        # x = self.dropout_1(x)
+        x = F.relu(self.bn2(self.fc2(x)))
+        # x = self.dropout_2(x)
+        x = torch.tanh(self.fc3(x))
+
+        return x
 class AutoEncoder(nn.Module):
     def __init__(self):
         super(AutoEncoder, self).__init__()
 
         self.encoder = Encoder()
-        self.decoder = Decoder()
+        self.decoder = pointfilter_decoder()
     
     def forward(self, x):
         v = self.encoder(x)
